@@ -1,9 +1,8 @@
 import mock = require('mock-require');
 
-const vscodeMock = require('./unit/vscode-mock');
+const lspVscodeShim = require('../lsp/vscode-shim');
 
-// Register a single vscode runtime mock for all unit tests.
-mock('vscode', vscodeMock);
+mock('vscode', lspVscodeShim);
 
 after(() => {
     mock.stop('vscode');

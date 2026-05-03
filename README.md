@@ -151,6 +151,24 @@ Highlights invalid Vuex store references as warnings directly in Zed.
 - A Vue 2 project using Vuex 2.
 - The project should contain a Vuex store entry that can be discovered from `src/main.{js,ts}` or `src/index.{js,ts}` via `new Vue({ store })`.
 
+## Configuration
+
+If your Vuex store entry cannot be discovered automatically, configure it in the target project's `.zed/settings.json`:
+
+```json
+{
+  "lsp": {
+    "vuex-helper": {
+      "settings": {
+        "storeEntry": "src/store/index.js"
+      }
+    }
+  }
+}
+```
+
+`storeEntry` supports workspace-relative paths and project aliases such as `@/store/index.js` when the alias is defined in `jsconfig.json` or `tsconfig.json`.
+
 ## Current Scope
 
 This Zed extension currently focuses on:

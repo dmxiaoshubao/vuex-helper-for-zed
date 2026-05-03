@@ -149,6 +149,24 @@ Vuex Helper for Zed 为 Zed 提供 Vuex 2 的跳转、补全、悬浮提示和�
 - 使用 Vuex 2 的 Vue 2 项目。
 - 项目入口建议位于 `src/main.{js,ts}`、`src/index.{js,ts}`，并通过 `new Vue({ store })` 注入 Vuex store。
 
+## 配置项
+
+如果无法自动识别 Vuex store 入口，可以在业务项目的 `.zed/settings.json` 中配置：
+
+```json
+{
+  "lsp": {
+    "vuex-helper": {
+      "settings": {
+        "storeEntry": "src/store/index.js"
+      }
+    }
+  }
+}
+```
+
+`storeEntry` 支持工作区相对路径；如果项目在 `jsconfig.json` 或 `tsconfig.json` 中配置了路径别名，也支持 `@/store/index.js` 这类别名路径。
+
 ## 当前范围
 
 当前 Zed 版本聚焦以下能力：

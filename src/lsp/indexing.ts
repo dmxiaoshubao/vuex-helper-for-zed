@@ -4,7 +4,17 @@ import { VuexDefinitionProvider } from '../providers/VuexDefinitionProvider';
 import { VuexCompletionItemProvider } from '../providers/VuexCompletionItemProvider';
 import { VuexHoverProvider } from '../providers/VuexHoverProvider';
 import { VuexDiagnosticProvider } from '../services/VuexDiagnosticProvider';
-import * as vscode from './vscode-shim';
+import * as vscode from 'vscode';
+
+interface ConfigurableVscodeWorkspace {
+    workspaceFolders?: any;
+    setConfiguration?: (section: string, values: Record<string, any>) => void;
+}
+
+function setVuexHelperConfiguration(configuration: Record<string, any>): void {
+    const workspace = vscode.workspace as typeof vscode.workspace & ConfigurableVscodeWorkspace;
+    workspace.setConfiguration?.('vuexHelper', configuration);
+}
 
 export class LspVuexWorkspace {
     public readonly storeIndexer: StoreIndexer;
@@ -14,8 +24,10 @@ export class LspVuexWorkspace {
     public readonly hoverProvider: VuexHoverProvider;
     public readonly diagnosticProvider: VuexDiagnosticProvider;
 
-    constructor(public readonly workspaceRoot: string) {
-        vscode.workspace.workspaceFolders = [{ uri: vscode.Uri.file(workspaceRoot) }];
+    constructor(public readonly workspaceRoot: string, configuration: Record<string, any> = {}) {
+        const workspace = vscode.workspace as typeof vscode.workspace & ConfigurableVscodeWorkspace;
+        workspace.workspaceFolders = [{ uri: vscode.Uri.file(workspaceRoot) }];
+        setVuexHelperConfiguration(configuration);
         this.storeIndexer = new StoreIndexer(workspaceRoot);
         this.definitionProvider = new VuexDefinitionProvider(this.storeIndexer, this.componentMapper);
         this.completionProvider = new VuexCompletionItemProvider(this.storeIndexer, this.componentMapper);
@@ -29,6 +41,16 @@ export class LspVuexWorkspace {
             changedFiles,
             forceFull: !changedFiles || changedFiles.length === 0,
         });
+    }
+
+    async updateConfiguration(configuration: Record<string, any>): Promise<void> {
+        setVuexHelperConfiguration(configuration);
+        this.storeIndexer.resetEntryInteractionState();
+        await this.index();
+    }
+
+    hasStoreEntry(): boolean {
+        return !!this.storeIndexer.getStoreEntryPath();
     }
 
     shouldReindexForFile(filePath: string): boolean {

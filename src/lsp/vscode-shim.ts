@@ -111,17 +111,36 @@ export const DiagnosticSeverity = {
     Hint: 3,
 };
 
+type ConfigurationValues = Record<string, Record<string, any>>;
+const configurationValues: ConfigurationValues = {};
+
+export function setConfiguration(section: string, values: Record<string, any> = {}): void {
+    configurationValues[section] = { ...values };
+}
+
+export function getConfigurationValue<T>(section: string, key: string, defaultValue?: T): T | undefined {
+    return Object.prototype.hasOwnProperty.call(configurationValues[section] || {}, key)
+        ? configurationValues[section][key]
+        : defaultValue;
+}
+
 export const workspace = {
     workspaceFolders: [] as Array<{ uri: Uri }>,
     textDocuments: [] as any[],
+    setConfiguration,
     asRelativePath: (value: string | Uri | { fsPath?: string; toString?: () => string }) => {
         const raw = typeof value === 'string' ? value : value.fsPath || value.toString?.() || String(value);
         const root = workspace.workspaceFolders[0]?.uri.fsPath;
         return root && raw.startsWith(root) ? path.relative(root, raw) : raw;
     },
-    getConfiguration: () => ({
-        get: (_key: string, defaultValue?: any) => defaultValue,
-        update: async () => undefined,
+    getConfiguration: (section = '') => ({
+        get: (key: string, defaultValue?: any) => getConfigurationValue(section, key, defaultValue),
+        update: async (key: string, value: any) => {
+            configurationValues[section] = {
+                ...(configurationValues[section] || {}),
+                [key]: value,
+            };
+        },
     }),
     onDidSaveTextDocument: () => ({ dispose: () => undefined }),
     onDidOpenTextDocument: () => ({ dispose: () => undefined }),

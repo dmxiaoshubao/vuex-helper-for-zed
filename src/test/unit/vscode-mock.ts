@@ -107,6 +107,12 @@ export const DiagnosticSeverity = {
     Hint: 3
 };
 
+const configurationValues: Record<string, Record<string, any>> = {};
+
+export function setConfiguration(section: string, values: Record<string, any> = {}): void {
+    configurationValues[section] = { ...values };
+}
+
 const noopDisposable = { dispose: () => undefined };
 
 export const commands = {
@@ -116,11 +122,20 @@ export const commands = {
 
 export const workspace = {
     workspaceFolders: [{ uri: { fsPath: '/mock/workspace' } }],
+    setConfiguration,
     asRelativePath: (value: string | Uri | { fsPath?: string; toString?: () => string }) =>
         (value as any)?.fsPath || (value as any)?.toString?.() || String(value),
-    getConfiguration: (_section?: string, _scope?: any) => ({
-        get: (_key: string, defaultValue?: any) => defaultValue,
-        update: async (_key: string, _value: any, _target?: any) => undefined
+    getConfiguration: (section = '') => ({
+        get: (key: string, defaultValue?: any) => {
+            const values = configurationValues[section] || {};
+            return Object.prototype.hasOwnProperty.call(values, key) ? values[key] : defaultValue;
+        },
+        update: async (key: string, value: any) => {
+            configurationValues[section] = {
+                ...(configurationValues[section] || {}),
+                [key]: value,
+            };
+        }
     }),
     onDidSaveTextDocument: (_listener: any) => noopDisposable,
     onDidOpenTextDocument: (_listener: any) => noopDisposable,

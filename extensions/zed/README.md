@@ -16,6 +16,22 @@ The extension starts the Vuex Helper language server and provides Vuex-related e
 - Zed editor.
 - A Vue 2 project using Vuex 2.
 
+## Configuration
+
+If the Vuex store entry cannot be discovered automatically, configure the target project's `.zed/settings.json`:
+
+```json
+{
+  "lsp": {
+    "vuex-helper": {
+      "settings": {
+        "storeEntry": "src/store/index.js"
+      }
+    }
+  }
+}
+```
+
 ## Current Scope
 
 This extension focuses on Vuex State, Getters, Mutations, and Actions support through the language server.

@@ -1,0 +1,9 @@
+out/
+node_modules/
+.DS_Store
+*.vsix
+.claude/
+.codex/
+.agent/
+extensions/zed/target/
+extensions/zed/extension.wasm

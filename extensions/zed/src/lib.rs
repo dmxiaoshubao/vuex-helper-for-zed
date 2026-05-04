@@ -1,11 +1,11 @@
-use std::path::PathBuf;
+use std::{env, path::PathBuf};
 use zed_extension_api::{
     self as zed, Command, LanguageServerId, LanguageServerInstallationStatus, Result, Worktree,
 };
 
 const SERVER_PACKAGE_NAME: &str = "@dmxiaoshubao/vuex-helper-lsp";
 const SERVER_PACKAGE_VERSION: &str = "0.1.0";
-const SERVER_PATH_IN_PACKAGE: &[&str] = &["node_modules", SERVER_PACKAGE_NAME, "out", "lsp", "server.js"];
+const SERVER_PATH_IN_PACKAGE: &[&str] = &["out", "lsp", "server.js"];
 
 struct VuexHelperExtension;
 
@@ -69,7 +69,17 @@ fn installed_server_path(language_server_id: &LanguageServerId) -> Result<String
         );
     }
 
-    Ok(SERVER_PATH_IN_PACKAGE.iter().collect::<PathBuf>().to_string_lossy().into_owned())
+    Ok(installed_package_path()?
+        .join(SERVER_PATH_IN_PACKAGE.iter().collect::<PathBuf>())
+        .to_string_lossy()
+        .into_owned())
+}
+
+fn installed_package_path() -> Result<PathBuf> {
+    Ok(env::current_dir()
+        .map_err(|error| error.to_string())?
+        .join("node_modules")
+        .join(SERVER_PACKAGE_NAME))
 }
 
 fn configured_server_path(worktree: &Worktree) -> Option<String> {

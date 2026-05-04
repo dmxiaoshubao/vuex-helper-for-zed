@@ -2,7 +2,7 @@
 
 This directory contains the Zed extension shell for Vuex Helper for Zed.
 
-The extension starts the Vuex Helper language server and provides Vuex-related editor features in Zed.
+The extension installs and starts the Vuex Helper language server, then provides Vuex-related editor features in Zed.
 
 ## Features
 
@@ -15,8 +15,11 @@ The extension starts the Vuex Helper language server and provides Vuex-related e
 
 - Zed editor.
 - A Vue 2 project using Vuex 2.
+- Node.js support provided by Zed for running the language server.
 
 ## Configuration
+
+The extension installs `@dmxiaoshubao/vuex-helper-lsp` automatically. The first install requires access to the npm registry.
 
 If the Vuex store entry cannot be discovered automatically, configure the target project's `.zed/settings.json`:
 
@@ -31,6 +34,10 @@ If the Vuex store entry cannot be discovered automatically, configure the target
   }
 }
 ```
+
+## Local Development
+
+For local extension development, `lsp.vuex-helper.settings.serverPath` can override the automatically installed language server path.
 
 ## Current Scope
 

@@ -1,5 +1,11 @@
 use std::path::PathBuf;
-use zed_extension_api::{self as zed, Command, LanguageServerId, Result, Worktree};
+use zed_extension_api::{
+    self as zed, Command, LanguageServerId, LanguageServerInstallationStatus, Result, Worktree,
+};
+
+const SERVER_PACKAGE_NAME: &str = "@dmxiaoshubao/vuex-helper-lsp";
+const SERVER_PACKAGE_VERSION: &str = "0.1.0";
+const SERVER_PATH_IN_PACKAGE: &[&str] = &["node_modules", SERVER_PACKAGE_NAME, "out", "lsp", "server.js"];
 
 struct VuexHelperExtension;
 
@@ -10,17 +16,13 @@ impl zed::Extension for VuexHelperExtension {
 
     fn language_server_command(
         &mut self,
-        _language_server_id: &LanguageServerId,
+        language_server_id: &LanguageServerId,
         worktree: &Worktree,
     ) -> Result<Command> {
-        let server_path = configured_server_path(worktree).unwrap_or_else(|| {
-            PathBuf::from(worktree.root_path())
-                .join("out")
-                .join("lsp")
-                .join("server.js")
-                .to_string_lossy()
-                .into_owned()
-        });
+        let server_path = match configured_server_path(worktree) {
+            Some(server_path) => server_path,
+            None => installed_server_path(language_server_id)?,
+        };
 
         Ok(Command {
             command: zed::node_binary_path()?,
@@ -44,6 +46,30 @@ impl zed::Extension for VuexHelperExtension {
     ) -> Result<Option<zed::serde_json::Value>> {
         Ok(configured_vuex_helper_settings(worktree))
     }
+}
+
+fn installed_server_path(language_server_id: &LanguageServerId) -> Result<String> {
+    let installed_version = zed::npm_package_installed_version(SERVER_PACKAGE_NAME)?;
+
+    if installed_version.as_deref() != Some(SERVER_PACKAGE_VERSION) {
+        zed::set_language_server_installation_status(
+            language_server_id,
+            &LanguageServerInstallationStatus::CheckingForUpdate,
+        );
+        zed::npm_install_package(SERVER_PACKAGE_NAME, SERVER_PACKAGE_VERSION).map_err(|error| {
+            zed::set_language_server_installation_status(
+                language_server_id,
+                &LanguageServerInstallationStatus::Failed(error.clone()),
+            );
+            error
+        })?;
+        zed::set_language_server_installation_status(
+            language_server_id,
+            &LanguageServerInstallationStatus::None,
+        );
+    }
+
+    Ok(SERVER_PATH_IN_PACKAGE.iter().collect::<PathBuf>().to_string_lossy().into_owned())
 }
 
 fn configured_server_path(worktree: &Worktree) -> Option<String> {

@@ -4,7 +4,7 @@ version = "0.1.0"
 schema_version = 1
 authors = ["dmxiaoshubao"]
 description = "Vuex definition, completion, hover, and diagnostics support through vuex-helper LSP."
-repository = "https://github.com/dmxiaoshubao/vuex-helper"
+repository = "https://github.com/dmxiaoshubao/vuex-helper-for-zed"
 
 [language_servers.vuex-helper]
 name = "Vuex Helper LSP"

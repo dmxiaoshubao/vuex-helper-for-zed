@@ -1,15 +1,29 @@
 {
-  "name": "vuex-helper-for-zed",
+  "name": "@dmxiaoshubao/vuex-helper-lsp",
   "version": "0.1.0",
-  "private": true,
   "description": "Vuex definition, completion, hover, and diagnostics support for Zed through vuex-helper LSP.",
   "license": "MIT",
+  "main": "out/lsp/server.js",
+  "files": [
+    "out/adapters/",
+    "out/core/",
+    "out/lsp/",
+    "out/providers/",
+    "out/services/",
+    "out/types/",
+    "out/utils/",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "compile": "tsc -p ./",
+    "clean": "node -e \"require('fs').rmSync('out', { recursive: true, force: true })\"",
+    "compile": "npm run clean && tsc -p ./",
     "start:lsp": "node ./out/lsp/server.js --stdio",
     "test:lsp": "npm run compile && mocha out/test/setup.js out/test/unit/*lsp*.test.js",
     "check:zed": "cargo check --manifest-path extensions/zed/Cargo.toml && cargo build --manifest-path extensions/zed/Cargo.toml --target wasm32-wasip1",
-    "test:zed": "npm run compile && npm run test:lsp && npm run check:zed"
+    "test:zed": "npm run test:lsp && npm run check:zed",
+    "prepublishOnly": "npm run test:zed"
   },
   "devDependencies": {
     "@types/babel__core": "^7.20.5",

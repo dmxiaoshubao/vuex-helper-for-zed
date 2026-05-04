@@ -8,3 +8,4 @@ node_modules/
 docs/tasks/
 extensions/zed/target/
 extensions/zed/extension.wasm
+.docs

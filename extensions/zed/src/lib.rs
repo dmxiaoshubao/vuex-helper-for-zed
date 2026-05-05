@@ -4,7 +4,7 @@ use zed_extension_api::{
 };
 
 const SERVER_PACKAGE_NAME: &str = "@dmxiaoshubao/vuex-helper-lsp";
-const SERVER_PACKAGE_VERSION: &str = "0.1.0";
+const SERVER_PACKAGE_VERSION: &str = "0.1.1";
 const SERVER_PATH_IN_PACKAGE: &[&str] = &["out", "lsp", "server.js"];
 
 struct VuexHelperExtension;

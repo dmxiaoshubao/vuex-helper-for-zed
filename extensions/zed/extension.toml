@@ -1,6 +1,6 @@
 id = "vuex-helper"
 name = "Vuex Helper"
-version = "0.1.0"
+version = "0.1.1"
 schema_version = 1
 authors = ["dmxiaoshubao"]
 description = "Vuex definition, completion, hover, and diagnostics support through vuex-helper LSP."

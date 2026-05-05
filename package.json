@@ -1,6 +1,6 @@
 {
   "name": "@dmxiaoshubao/vuex-helper-lsp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Vuex definition, completion, hover, and diagnostics support for Zed through vuex-helper LSP.",
   "license": "MIT",
   "main": "out/lsp/server.js",

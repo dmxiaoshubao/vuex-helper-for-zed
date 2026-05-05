@@ -49,6 +49,10 @@ export class LspVuexWorkspace {
         await this.index();
     }
 
+    async isSupportedProject(): Promise<boolean> {
+        return this.storeIndexer.isSupportedProject();
+    }
+
     hasStoreEntry(): boolean {
         return !!this.storeIndexer.getStoreEntryPath();
     }

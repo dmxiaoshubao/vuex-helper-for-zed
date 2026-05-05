@@ -18,6 +18,12 @@ describe('LSP storeEntry configuration', () => {
 
     it('should resolve configured storeEntry when auto detection cannot find an entry file', async () => {
         const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'vuex-helper-zed-entry-'));
+        writeFile(path.join(workspaceRoot, 'package.json'), JSON.stringify({
+            dependencies: {
+                vue: '^2.7.0',
+                vuex: '^3.6.2',
+            },
+        }, null, 2));
         const storeEntry = path.join(workspaceRoot, 'config', 'custom-store.js');
         writeFile(storeEntry, `
             export default {
@@ -36,6 +42,12 @@ describe('LSP storeEntry configuration', () => {
 
     it('should reindex with a new storeEntry after configuration changes', async () => {
         const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'vuex-helper-zed-config-change-'));
+        writeFile(path.join(workspaceRoot, 'package.json'), JSON.stringify({
+            dependencies: {
+                vue: '^2.7.0',
+                vuex: '^3.6.2',
+            },
+        }, null, 2));
         const firstStore = path.join(workspaceRoot, 'stores', 'first.js');
         const secondStore = path.join(workspaceRoot, 'stores', 'second.js');
         writeFile(firstStore, `

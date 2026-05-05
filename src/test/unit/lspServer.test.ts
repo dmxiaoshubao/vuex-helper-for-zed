@@ -40,9 +40,15 @@ describe('LSP server', () => {
         assert.strictEqual(registration.message.params.registrations[0].method, 'workspace/didChangeWatchedFiles');
     });
 
-    it('should prompt once and create Zed settings template when store entry is missing', async () => {
+    it('should prompt once and create Zed settings template when store entry is missing for a Vue 2 + Vuex project', async () => {
         const client = startServer();
         const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'vuex-helper-zed-missing-entry-'));
+        fs.writeFileSync(path.join(workspaceRoot, 'package.json'), JSON.stringify({
+            dependencies: {
+                vue: '^2.7.0',
+                vuex: '^3.6.2',
+            },
+        }, null, 2));
 
         await client.request(1, 'initialize', {
             processId: process.pid,
@@ -74,12 +80,40 @@ describe('LSP server', () => {
         client.shutdown();
     });
 
+    it('should not prompt for a Vue 3 project without Vuex', async () => {
+        const client = startServer();
+        const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'vuex-helper-zed-vue3-project-'));
+        fs.writeFileSync(path.join(workspaceRoot, 'package.json'), JSON.stringify({
+            dependencies: {
+                vue: '^3.5.0',
+                pinia: '^2.1.0',
+            },
+        }, null, 2));
+
+        await client.request(1, 'initialize', {
+            processId: process.pid,
+            rootUri: fileUri(workspaceRoot),
+            capabilities: {},
+            workspaceFolders: [{ uri: fileUri(workspaceRoot), name: 'vue3-project' }],
+        });
+
+        await client.waitForNoRequest('window/showMessageRequest', () => undefined);
+
+        client.shutdown();
+    });
+
     it('should add missing store entry to an existing Zed settings file', async () => {
         const client = startServer();
         const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'vuex-helper-zed-existing-settings-'));
         const settingsDir = path.join(workspaceRoot, '.zed');
         const settingsPath = path.join(settingsDir, 'settings.json');
         fs.mkdirSync(settingsDir, { recursive: true });
+        fs.writeFileSync(path.join(workspaceRoot, 'package.json'), JSON.stringify({
+            dependencies: {
+                vue: '^2.7.0',
+                vuex: '^3.6.2',
+            },
+        }, null, 2));
         fs.writeFileSync(settingsPath, `{
   // Existing Zed settings can use JSONC-style syntax.
   "theme": "Ayu Dark",
@@ -114,6 +148,12 @@ describe('LSP server', () => {
     it('should not prompt again after a configuration refresh', async () => {
         const client = startServer();
         const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'vuex-helper-zed-single-prompt-'));
+        fs.writeFileSync(path.join(workspaceRoot, 'package.json'), JSON.stringify({
+            dependencies: {
+                vue: '^2.7.0',
+                vuex: '^3.6.2',
+            },
+        }, null, 2));
 
         await client.request(1, 'initialize', {
             processId: process.pid,

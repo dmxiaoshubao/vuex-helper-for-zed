@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { EntryAnalyzer } from './EntryAnalyzer';
 import { StoreParser } from './StoreParser';
@@ -37,6 +38,7 @@ export class StoreIndexer {
     private moduleNames: Set<string> = new Set();
     private duplicateGlobalGetterConflicts: VuexGlobalGetterConflict[] = [];
     private internalStoreEntryConfigChangeCount = 0;
+    private supportedProjectCache: boolean | undefined;
 
     constructor(workspaceRoot: string) {
         this.workspaceRoot = workspaceRoot;
@@ -88,6 +90,15 @@ export class StoreIndexer {
         const interactive = options.interactive === true;
         const forceFull = options.forceFull === true;
         const normalizedChangedFiles = (options.changedFiles || []).map((filePath) => vscode.Uri.file(filePath).fsPath);
+        const shouldRefreshSupport = forceFull || normalizedChangedFiles.some((filePath) => /(^|[\\/])package\.json$/i.test(filePath));
+        const isSupportedProject = await this.isSupportedProject(shouldRefreshSupport);
+        if (!isSupportedProject) {
+            this.lastStoreEntryPath = null;
+            this.storeMap = null;
+            this.clearIndexes();
+            return;
+        }
+
         const shouldRefreshEntry = forceFull || this.shouldRefreshEntry(normalizedChangedFiles);
         if (shouldRefreshEntry && 'invalidateCache' in this.entryAnalyzer) {
             this.entryAnalyzer.invalidateCache();
@@ -156,7 +167,29 @@ export class StoreIndexer {
         return false;
     }
 
+    public async isSupportedProject(forceRefresh = false): Promise<boolean> {
+        if (!forceRefresh && this.supportedProjectCache !== undefined) {
+            return this.supportedProjectCache;
+        }
+
+        const packageJsonPath = path.join(this.workspaceRoot, 'package.json');
+        try {
+            const content = await fs.promises.readFile(packageJsonPath, 'utf8');
+            const packageJson = JSON.parse(content);
+            const dependencies = this.collectProjectDependencies(packageJson);
+            const vueVersion = dependencies.vue;
+            const vuexVersion = dependencies.vuex;
+            const isSupported = this.isVue2Version(vueVersion) && typeof vuexVersion === 'string' && vuexVersion.trim() !== '';
+            this.supportedProjectCache = isSupported;
+            return isSupported;
+        } catch {
+            this.supportedProjectCache = false;
+            return false;
+        }
+    }
+
     public dispose(): void {
+        this.supportedProjectCache = undefined;
         this.storeMap = null;
         this.lastStoreEntryPath = null;
         this.indexingPromise = null;
@@ -183,6 +216,7 @@ export class StoreIndexer {
     }
 
     public resetEntryInteractionState(): void {
+        this.supportedProjectCache = undefined;
         this.entryAnalyzer.resetInteractionState();
     }
 
@@ -236,6 +270,23 @@ export class StoreIndexer {
         indexItems('mutation', this.storeMap.mutations);
         indexItems('action', this.storeMap.actions);
         this.duplicateGlobalGetterConflicts = this.collectDuplicateGlobalGetterConflicts();
+    }
+
+    private collectProjectDependencies(packageJson: any): Record<string, string> {
+        return {
+            ...(packageJson?.dependencies || {}),
+            ...(packageJson?.devDependencies || {}),
+            ...(packageJson?.peerDependencies || {}),
+            ...(packageJson?.optionalDependencies || {}),
+        };
+    }
+
+    private isVue2Version(version: unknown): boolean {
+        if (typeof version !== 'string') return false;
+        const normalized = version.trim();
+        if (!normalized) return false;
+        const match = normalized.match(/\d+/);
+        return match?.[0] === '2';
     }
 
     private collectDuplicateGlobalGetterConflicts(): VuexGlobalGetterConflict[] {

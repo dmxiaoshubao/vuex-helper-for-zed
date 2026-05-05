@@ -17,6 +17,12 @@ describe('LSP watched files reindex', () => {
 
     it('should reindex when a watched store file changes', async () => {
         const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'vuex-helper-zed-watch-'));
+        writeFile(path.join(workspaceRoot, 'package.json'), JSON.stringify({
+            dependencies: {
+                vue: '^2.7.0',
+                vuex: '^3.6.2',
+            },
+        }, null, 2));
         const storeEntry = path.join(workspaceRoot, 'src', 'store', 'index.js');
         writeFile(storeEntry, `
             import Vuex from 'vuex';

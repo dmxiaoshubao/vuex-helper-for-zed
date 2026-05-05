@@ -198,7 +198,9 @@ async function publishDiagnostics(document: TextDocument): Promise<void> {
 }
 
 async function maybePromptForMissingStoreEntry(): Promise<void> {
-    if (!workspace || workspace.hasStoreEntry() || missingStoreEntryPrompted) return;
+    if (!workspace || missingStoreEntryPrompted) return;
+    if (!await workspace.isSupportedProject()) return;
+    if (workspace.hasStoreEntry()) return;
     missingStoreEntryPrompted = true;
 
     const action = await connection.window.showInformationMessage<MessageActionItem>(
